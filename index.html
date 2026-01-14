@@ -852,7 +852,7 @@
     </style>
   </head>
   <body>
-    <div class="mute-button" id="muteButton" title="Mute/Unmute">🔊</div>
+    <div class="mute-button" id="playButton" title="Play Music">▶️</div>
   <section>
     <div class="photo-section">
       <img src="noorIcon.png" alt="Noor" class="noor-photo">
@@ -1486,37 +1486,54 @@
       if (playPromise !== undefined) {
         playPromise.then(function() {
           console.log('Audio is now playing!');
+          updatePlayButtonState();
         }).catch(function(error) {
           console.error('Play failed:', error);
         });
       }
     }
-    
-    // Handle mute button
-    var muteButton = document.getElementById('muteButton');
-    var audio = document.getElementById('bgAudio');
-    
-    muteButton.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (audio) {
-        audio.muted = !audio.muted;
-        muteButton.textContent = audio.muted ? '🔇' : '🔊';
+
+    function pauseAudio() {
+      var audio = document.getElementById('bgAudio');
+      if (!audio) return;
+      audio.pause();
+      updatePlayButtonState();
+    }
+
+    function updatePlayButtonState() {
+      var audio = document.getElementById('bgAudio');
+      var playButton = document.getElementById('playButton');
+      if (audio && playButton) {
+        playButton.textContent = audio.paused ? '▶️' : '⏸️';
+        playButton.title = audio.paused ? 'Play Music' : 'Pause Music';
       }
-    });
-    
-    // Play on first user interaction (click or touch)
-    function startAudioOnInteraction() {
-      playAudio();
-      // Remove listeners after first interaction
-      document.removeEventListener('click', startAudioOnInteraction);
-      document.removeEventListener('touchstart', startAudioOnInteraction);
     }
     
-    // Listen for any user interaction
-    document.addEventListener('click', startAudioOnInteraction);
-    document.addEventListener('touchstart', startAudioOnInteraction);
+    // Handle play button
+    var playButton = document.getElementById('playButton');
+    var audio = document.getElementById('bgAudio');
     
-    console.log('Audio will play on first click or touch');
+    playButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (audio) {
+        if (audio.paused) {
+          playAudio();
+        } else {
+          pauseAudio();
+        }
+      }
+    });
+
+    // Update button when audio state changes
+    if (audio) {
+      audio.addEventListener('play', updatePlayButtonState);
+      audio.addEventListener('pause', updatePlayButtonState);
+    }
+    
+    // Initialize button state
+    updatePlayButtonState();
+
+    console.log('Click the play button to start music');
   </script>
   </body>
 </html>
